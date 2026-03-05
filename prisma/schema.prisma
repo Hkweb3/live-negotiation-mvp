@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  role         String   @default("user")
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  cases        Case[]
+
+  @@map("users")
+}
+
+model Case {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  vertical  String
+  channel   String
+  rawInput  String   @map("raw_input")
+  summary   String
+  confidence Float
+  entities  Json
+  signals   Json
+  metrics   Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks   Task[]
+  actions Action[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, vertical])
+  @@map("cases")
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  caseId    String   @map("case_id")
+  title     String
+  owner     String
+  dueInDays Int      @map("due_in_days")
+  priority  String
+  status    String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+  @@map("tasks")
+}
+
+model Action {
+  id               String   @id @default(cuid())
+  caseId           String   @map("case_id")
+  type             String
+  title            String
+  description      String
+  draft            String
+  requiresApproval Boolean  @default(true) @map("requires_approval")
+  status           String
+  executedAt       DateTime? @map("executed_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+  @@map("actions")
+}

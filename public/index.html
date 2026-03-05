@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Negotiation AI MVP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">LIVE NEGOTIATION AI</p>
+        <h1>ScopeShield + DealPilot</h1>
+        <p class="subtitle">
+          Sign in, drop raw messages and quotes, and execute AI-generated negotiation actions with approval gates.
+        </p>
+      </section>
+
+      <section class="panel auth-panel">
+        <h2>Account</h2>
+        <div id="authStatus" class="empty">Not signed in.</div>
+
+        <div class="row two">
+          <label>
+            Name
+            <input id="authName" placeholder="Avery" />
+          </label>
+          <label>
+            Email
+            <input id="authEmail" type="email" placeholder="you@example.com" />
+          </label>
+        </div>
+
+        <div class="row two">
+          <label>
+            Password
+            <input id="authPassword" type="password" placeholder="At least 8 characters" />
+          </label>
+          <div class="auth-actions">
+            <button id="registerBtn" class="secondary">Register</button>
+            <button id="loginBtn" class="secondary">Login</button>
+            <button id="logoutBtn" class="secondary">Logout</button>
+          </div>
+        </div>
+
+        <div id="authError" class="error hidden"></div>
+      </section>
+
+      <section class="panel composer">
+        <div class="row two">
+          <label>
+            Product
+            <select id="vertical">
+              <option value="scope-shield">ScopeShield (Freelancer)</option>
+              <option value="deal-pilot">DealPilot (Car Buying)</option>
+            </select>
+          </label>
+          <label>
+            Channel
+            <select id="channel">
+              <option value="text">Text</option>
+              <option value="email">Email</option>
+              <option value="voice">Voice Memo</option>
+              <option value="photo">Photo/OCR</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="row two">
+          <label>
+            Your Name
+            <input id="customerName" placeholder="Avery" />
+          </label>
+          <label>
+            Counterparty
+            <input id="counterparty" placeholder="Client / Dealer" />
+          </label>
+        </div>
+
+        <label>
+          Raw Input
+          <textarea
+            id="content"
+            rows="8"
+            placeholder="Paste email, quote details, or call notes..."
+          ></textarea>
+        </label>
+
+        <button id="analyzeBtn" class="primary">Analyze + Generate Actions</button>
+        <div id="ingestError" class="error hidden"></div>
+      </section>
+
+      <section class="grid">
+        <article class="panel" id="resultPanel">
+          <h2>Current Case</h2>
+          <div id="currentCase" class="empty">No case analyzed yet.</div>
+        </article>
+
+        <article class="panel" id="historyPanel">
+          <h2>Recent Cases</h2>
+          <div id="caseHistory" class="empty">No cases yet.</div>
+        </article>
+      </section>
+    </main>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
