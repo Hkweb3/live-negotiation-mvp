@@ -3,6 +3,7 @@ import {
   HeuristicNegotiationEngine,
   OpenAINegotiationEngine
 } from "../src/services/negotiationEngine";
+import { appConfig } from "../src/config";
 
 const requestPayload = {
   vertical: "deal-pilot" as const,
@@ -34,5 +35,79 @@ describe("negotiation engines", () => {
     expect(result.actions.some((action) => action.type === "dealer_counteroffer_email")).toBe(
       true
     );
+  });
+
+  it("openai engine uses llm branch when client returns valid JSON", async () => {
+    const previousKey = appConfig.openAiApiKey;
+    appConfig.openAiApiKey = "test-openai-key";
+
+    const engine = new OpenAINegotiationEngine() as unknown as {
+      analyze: OpenAINegotiationEngine["analyze"];
+      client: {
+        chat: {
+          completions: {
+            create: (input: unknown) => Promise<{
+              choices: Array<{ message: { content: string } }>;
+            }>;
+          };
+        };
+      };
+    };
+
+    engine.client = {
+      chat: {
+        completions: {
+          create: async () => ({
+            choices: [
+              {
+                message: {
+                  content: JSON.stringify({
+                    summary: "LLM summary",
+                    confidence: 0.91,
+                    signals: ["high-fee-risk"],
+                    entities: [
+                      {
+                        key: "apr",
+                        value: "9.4",
+                        confidence: 0.9,
+                        source: "APR 9.4%"
+                      }
+                    ],
+                    metrics: {
+                      apr: 9.4,
+                      suspiciousFeesTotal: 2198
+                    },
+                    tasks: [
+                      {
+                        title: "Request itemized OTD quote",
+                        owner: "You",
+                        dueInDays: 1,
+                        priority: "high"
+                      }
+                    ],
+                    actions: [
+                      {
+                        type: "dealer_counteroffer_email",
+                        title: "Counteroffer",
+                        description: "Send counteroffer email",
+                        draft: "Draft email body",
+                        requiresApproval: true
+                      }
+                    ]
+                  })
+                }
+              }
+            ]
+          })
+        }
+      }
+    };
+
+    const result = await engine.analyze(requestPayload);
+    expect(result.source).toBe("llm");
+    expect(result.actions).toHaveLength(1);
+    expect(result.tasks).toHaveLength(1);
+
+    appConfig.openAiApiKey = previousKey;
   });
 });

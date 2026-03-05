@@ -93,4 +93,64 @@ describe("API", () => {
 
     expect(adminResponse.status).toBe(403);
   });
+
+  it("returns null user on /api/auth/me when session cookie is missing", async () => {
+    const app = createApp();
+    const response = await request(app).get("/api/auth/me");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ user: null });
+  });
+
+  it("validates register and login request payloads", async () => {
+    const app = createApp();
+
+    const badRegister = await request(app).post("/api/auth/register").send({
+      email: "not-an-email",
+      password: "short"
+    });
+    expect(badRegister.status).toBe(400);
+
+    const badLogin = await request(app).post("/api/auth/login").send({
+      email: "user@example.com"
+    });
+    expect(badLogin.status).toBe(400);
+  });
+
+  it("returns 404 for missing case and missing action", async () => {
+    const app = createApp();
+
+    const registerResponse = await request(app).post("/api/auth/register").send({
+      email: "cases@example.com",
+      password: "pass12345",
+      name: "Cases"
+    });
+
+    const cookie = registerResponse.headers["set-cookie"][0];
+
+    const missingCase = await request(app).get("/api/cases/missing-case").set("Cookie", cookie);
+    expect(missingCase.status).toBe(404);
+
+    const missingAction = await request(app)
+      .post("/api/cases/missing-case/actions/missing-action/execute")
+      .set("Cookie", cookie);
+    expect(missingAction.status).toBe(404);
+  });
+
+  it("rejects invalid vertical filter on /api/cases", async () => {
+    const app = createApp();
+
+    const registerResponse = await request(app).post("/api/auth/register").send({
+      email: "vertical@example.com",
+      password: "pass12345",
+      name: "Vertical"
+    });
+    const cookie = registerResponse.headers["set-cookie"][0];
+
+    const response = await request(app)
+      .get("/api/cases?vertical=invalid-vertical")
+      .set("Cookie", cookie);
+
+    expect(response.status).toBe(400);
+  });
 });
